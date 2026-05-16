@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>German Vocabulary - GBE A1 Batch</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4ff;min-height:100vh}
+header{background:linear-gradient(135deg,#0d1b4b,#1a3a8a);color:white;padding:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+header h1{font-size:18px;font-weight:700;margin-bottom:4px}
+header p{font-size:11px;opacity:0.7;margin-bottom:10px}
+.search-box{display:flex;background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;align-items:center;gap:8px}
+.search-box input{background:none;border:none;color:white;font-size:14px;width:100%;outline:none}
+.search-box input::placeholder{color:rgba(255,255,255,0.6)}
+.filters{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;scrollbar-width:none;background:white;border-bottom:1px solid #e0e0e0}
+.filters::-webkit-scrollbar{display:none}
+.fb{white-space:nowrap;padding:6px 14px;border:1.5px solid #c5cae9;border-radius:20px;font-size:12px;cursor:pointer;background:white;color:#3949ab;font-weight:500;transition:all 0.15s}
+.fb.active{background:#1a3a8a;color:white;border-color:#1a3a8a}
+.stats{padding:8px 16px;font-size:12px;color:#666}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;padding:8px 16px 100px}
+.card{background:white;border-radius:14px;padding:12px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:1.5px solid transparent;transition:all 0.15s;position:relative;user-select:none;-webkit-tap-highlight-color:transparent}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.12);border-color:#c5cae9}
+.card.playing{border-color:#1a3a8a;background:#e8eaf6}
+.badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;position:absolute;top:8px;right:8px}
+.emoji{font-size:30px;text-align:center;margin:18px 0 8px;display:block}
+.de{font-size:14px;font-weight:700;color:#1a3a8a;margin-bottom:4px}
+.en{font-size:12px;color:#2e7d32;margin-bottom:3px}
+.hi{font-size:12px;color:#6a1b9a;margin-bottom:3px}
+.note{font-size:10px;color:#999;font-style:italic}
+.hint{font-size:10px;color:#bbb;margin-top:6px;padding-top:6px;border-top:1px solid #f0f0f0}
+.card.playing .hint{color:#1a3a8a}
+.no-results{grid-column:1/-1;text-align:center;padding:3rem;color:#999}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px}
+.overlay.show{display:flex}
+.modal-box{background:#1a237e;border-radius:20px;padding:20px;width:100%;max-width:420px;text-align:center;color:white}
+.modal-de{font-size:24px;font-weight:700;margin-bottom:4px}
+.modal-en{font-size:14px;color:#90caf9;margin-bottom:2px}
+.modal-hi{font-size:14px;color:#ce93d8;margin-bottom:14px}
+.modal-img-wrap{width:100%;height:200px;background:#0d1b4b;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative}
+.modal-img-wrap img{width:100%;height:100%;object-fit:cover}
+.img-loader{color:#90caf9;font-size:13px;position:absolute}
+.explain-box{background:rgba(255,255,255,0.1);border-radius:12px;padding:12px;font-size:13px;line-height:1.7;text-align:left;max-height:160px;overflow-y:auto;margin-bottom:12px;display:none}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn{padding:8px 16px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.15s}
+.btn-primary{background:#4caf50;color:white}
+.btn-secondary{background:rgba(255,255,255,0.15);color:white}
+.btn-close{background:rgba(255,255,255,0.1);color:white;margin-top:6px}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn:active{transform:scale(0.96)}
+
+/* Bottom bar */
+.speak-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a8a;color:white;padding:10px 16px;display:none;align-items:center;gap:10px;z-index:150}
+.speak-bar.show{display:flex}
+.wave{display:flex;align-items:center;gap:3px}
+.wave span{display:block;width:3px;background:#90caf9;border-radius:2px;animation:wave 0.8s ease-in-out infinite}
+.wave span:nth-child(1){height:6px;animation-delay:0s}
+.wave span:nth-child(2){height:14px;animation-delay:0.1s}
+.wave span:nth-child(3){height:20px;animation-delay:0.2s}
+.wave span:nth-child(4){height:14px;animation-delay:0.3s}
+.wave span:nth-child(5){height:6px;animation-delay:0.4s}
+@keyframes wave{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}
+.speak-word{font-weight:700;font-size:16px;flex:1}
+.stop-btn{background:rgba(255,255,255,0.2);border:none;color:white;padding:5px 12px;border-radius:14px;cursor:pointer;font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇩🇪 German · English · हिंदी</h1>
+  <p>Hover = pronounce · Tap = image + AI explanation</p>
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" id="search" placeholder="Search German, English or Hindi..." oninput="render()">
+  </div>
+</header>
+
+<div class="filters" id="filters"></div>
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+
+<!-- Modal -->
+<div class="overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-de" id="mDE"></div>
+    <div class="modal-en" id="mEN"></div>
+    <div class="modal-hi" id="mHI"></div>
+    <div class="modal-img-wrap">
+      <div class="img-loader" id="imgLoader">🔍 Loading image...</div>
+      <img id="mImg" src="" alt="" style="display:none" onerror="imgError()">
+    </div>
+    <div class="explain-box" id="explainBox"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="pronounceModal()">🔊 Pronounce</button>
+      <button class="btn btn-secondary" onclick="nextImg()">🔄 Next Image</button>
+      <button class="btn btn-secondary" id="explainBtn" onclick="getExplanation()">💡 Explain (Hinglish)</button>
+      <button class="btn btn-secondary" id="readBtn" onclick="readExplanation()" style="display:none">▶️ Read Aloud</button>
+    </div>
+    <button class="btn btn-close" style="width:100%;margin-top:8px" onclick="closeModal()">✕ Close</button>
+  </div>
+</div>
+
+<!-- Speak bar -->
+<div class="speak-bar" id="speakBar">
+  <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="speak-word" id="speakWord"></div>
+  <button class="stop-btn" onclick="stopAll()">■ Stop</button>
+</div>
+
+<script>
+const COLORS = {
+  "Today's Vocab":{bg:"#fff9c4",tx:"#f57f17"},
+  "Exams":{bg:"#e3f2fd",tx:"#0d47a1"},
+  "Feelings":{bg:"#fce4ec",tx:"#880e4f"},
+  "Travel":{bg:"#e8f5e9",tx:"#1b5e20"},
+  "Accommodation":{bg:"#e0f2f1",tx:"#004d40"},
+  "Money":{bg:"#fbe9e7",tx:"#bf360c"},
+  "Food":{bg:"#fff8e1",tx:"#e65100"},
+  "Work":{bg:"#e8eaf6",tx:"#1a237e"},
+  "Communication":{bg:"#e0f7fa",tx:"#006064"},
+  "Verbs":{bg:"#eceff1",tx:"#37474f"},
+  "Home":{bg:"#ede7f6",tx:"#4a148c"},
+  "Admin":{bg:"#e8eaf6",tx:"#1a237e"},
+  "Adjectives":{bg:"#f1f8e9",tx:"#33691e"},
+  "Questions":{bg:"#fff3e0",tx:"#e65100"},
+  "Connectors":{bg:"#f9fbe7",tx:"#558b2f"},
+  "Time":{bg:"#e1f5fe",tx:"#01579b"},
+  "Places":{bg:"#e0f2f1",tx:"#00695c"},
+  "Social":{bg:"#f3e5f5",tx:"#4a148c"},
+};
+
+// [de, en, hi, note, section, emoji]
+const VOCAB=[
+["als","than (comparisons)","से (तुलना में)","besser als = better than","Today's Vocab","⚖️"],
+["dann","then (after this)","फिर / उसके बाद","","Today's Vocab","➡️"],
+["ehrlich","honest","ईमानदार","","Today's Vocab","🤝"],
+["ehrlich gesagt","to be honest","सच कहूँ तो","","Today's Vocab","💬"],
+["letzte","last","आखिरी","","Today's Vocab","🏁"],
+["gehören","to belong to","संबंधित होना","","Today's Vocab","🔗"],
+["Spielzeug","toy","खिलौना","","Today's Vocab","🧸"],
+["Speisekarte","menu card","मेनू कार्ड","","Today's Vocab","📋"],
+["vielleicht","maybe","शायद","","Today's Vocab","🤔"],
+["andere Tag","another day","दूसरा दिन","","Today's Vocab","📅"],
+["süd","south","दक्षिण","","Today's Vocab","🧭"],
+["öst","east","पूर्व","","Today's Vocab","🧭"],
+["nord","north","उत्तर","","Today's Vocab","🧭"],
+["besetzt","occupied","व्यस्त / भरा हुआ","","Today's Vocab","🔴"],
+["zurzeit","currently","अभी / फिलहाल","","Today's Vocab","📡"],
+["dringend","urgent","तत्काल","","Today's Vocab","🚨"],
+["Schrank","wardrobe / cabinet","अलमारी","","Today's Vocab","🪞"],
+["schaffen","to manage","मैनेज करना","","Today's Vocab","💪"],
+["genießen","to enjoy","आनंद लेना","","Today's Vocab","😊"],
+["Schnee","snow","बर्फ","","Today's Vocab","❄️"],
+["fühlen","to feel","महसूस करना","","Today's Vocab","💭"],
+["tragen","to carry","ले जाना / पहनना","","Today's Vocab","🎒"],
+["deswegen","that's why","इसलिए","","Today's Vocab","💡"],
+["eigene","own","अपना","","Today's Vocab","🙋"],
+["ungefähr","approximately","लगभग","","Today's Vocab","🔢"],
+["sich fertig machen","to get ready","तैयार होना","","Today's Vocab","🪥"],
+["zubereiten","to prepare","तैयार करना","food/meals","Today's Vocab","👨‍🍳"],
+["Kinos","cinema","सिनेमा","","Today's Vocab","🎬"],
+["danach","thereafter","उसके बाद","","Today's Vocab","⏭️"],
+["Das ist alles","that is all","बस इतना ही","","Today's Vocab","✅"],
+["in Ordnung","okay / alright / fine","ठीक है","","Today's Vocab","👍"],
+["vorne","in front","आगे / सामने","","Today's Vocab","⬆️"],
+["Möglichkeit","possibility","संभावना","","Today's Vocab","🌟"],
+["ausgeben","to spend","खर्च करना","","Today's Vocab","💸"],
+["abfahrt","departure","प्रस्थान","","Today's Vocab","🚀"],
+["betrunken","drunk","नशे में","","Today's Vocab","🍺"],
+["verständnis","understanding","समझ","","Today's Vocab","🧠"],
+["anfangen","to start","शुरू करना","","Today's Vocab","▶️"],
+["gucken","to look / watch","देखना","casual","Today's Vocab","👀"],
+["bestehen","to pass","पास करना","","Exams","✅"],
+["bestanden","passed","पास हो गया","past","Exams","🎉"],
+["Zulassung","admission","प्रवेश","","Exams","🎓"],
+["bewerben","to apply","आवेदन करना","","Exams","📋"],
+["Bewerbung","application","आवेदन पत्र","","Exams","📄"],
+["Vereinbaren","to arrange","व्यवस्था करना","","Exams","📅"],
+["Prüfung","exam","परीक्षा","","Exams","📝"],
+["studieren","to study","पढ़ाई करना","","Exams","📚"],
+["Unterricht","class","कक्षा","","Exams","🏫"],
+["Vorlesung","lecture","व्याख्यान","","Exams","🎤"],
+["sich freuen auf","to look forward to","उत्सुकता से इंतजार","","Feelings","😊"],
+["sich freuen über","happy about","खुश होना","","Feelings","😄"],
+["wütend","angry","गुस्सा","","Feelings","😡"],
+["aufgeregt","excited","उत्साहित","","Feelings","🤩"],
+["müde","tired","थका हुआ","","Feelings","😴"],
+["Liebe","love","प्यार","","Feelings","❤️"],
+["lieben","to love","प्यार करना","","Feelings","💕"],
+["wunderbar","wonderful","अद्भुत","","Feelings","🌟"],
+["leider","unfortunately","दुर्भाग्य से","","Feelings","😔"],
+["besser","better","बेहतर","","Feelings","👍"],
+["herzlich","warmly","हार्दिक","","Feelings","🤗"],
+["Flughafen","airport","हवाई अड्डा","","Travel","✈️"],
+["abfliegen","to take off","उड़ान भरना","","Travel","🛫"],
+["fliegen","to fly","उड़ना","","Travel","🛩️"],
+["Flugzeug","airplane","हवाई जहाज","","Travel","✈️"],
+["Bahnhof","railway station","रेलवे स्टेशन","","Travel","🚉"],
+["Hauptbahnhof","main station","मुख्य स्टेशन","Hbf","Travel","🏛️"],
+["Bushaltestelle","bus stop","बस स्टॉप","","Travel","🚌"],
+["Straßenbahn","tram","ट्राम","","Travel","🚋"],
+["Zug","train","ट्रेन","","Travel","🚆"],
+["Auto","car","कार","","Travel","🚗"],
+["fahren","to drive","चलाना","","Travel","🚘"],
+["abfahren","to depart","रवाना होना","","Travel","🚀"],
+["ankommen","to arrive","पहुँचना","","Travel","🏁"],
+["Ankunft","arrival","आगमन","","Travel","🛬"],
+["einsteigen","to get in","चढ़ना","","Travel","🚪"],
+["aussteigen","to get out","उतरना","","Travel","🚶"],
+["umsteigen","to transfer","बदलना","","Travel","🔄"],
+["Fahrkarte","ticket","यात्रा टिकट","","Travel","🎫"],
+["reisen","to travel","यात्रा करना","","Travel","🌍"],
+["Reisebüro","travel office","ट्रैवल एजेंसी","","Travel","🏢"],
+["Gleis","platform","प्लेटफार्म","","Travel","🛤️"],
+["geradeaus","straight ahead","सीधे आगे","","Travel","⬆️"],
+["rechts","right","दाएँ","","Travel","➡️"],
+["links","left","बाएँ","","Travel","⬅️"],
+["zurück","back","वापस","","Travel","🔙"],
+["Hin- und Rückfahrt","round trip","आना-जाना","","Travel","🔄"],
+["Fernverkehr","long distance train","लंबी दूरी की ट्रेन","","Travel","🚄"],
+["Nahverkehr","local train","स्थानीय ट्रेन","","Travel","🚈"],
+["Übernachtung","overnight stay","रात भर रुकना","","Accommodation","🌙"],
+["übernachten","to stay overnight","रात गुजारना","","Accommodation","🛏️"],
+["mieten","to rent","किराए पर लेना","","Accommodation","🔑"],
+["vermieten","to rent out","किराए पर देना","","Accommodation","🏠"],
+["Miete","rent","किराया","","Accommodation","💰"],
+["reservieren","to reserve","आरक्षित करना","","Accommodation","📋"],
+["buchen","to book","बुक करना","","Accommodation","📖"],
+["Buchung","booking","बुकिंग","","Accommodation","🗓️"],
+["Termin","appointment","अपॉइंटमेंट","","Accommodation","📅"],
+["Halbpension","half board","आधा बोर्ड","","Accommodation","🍽️"],
+["Gästehaus","guest house","गेस्ट हाउस","","Accommodation","🏡"],
+["Ferienhaus","holiday home","छुट्टी का घर","","Accommodation","🏖️"],
+["Geld","money","पैसा","","Money","💵"],
+["Geldautomat","ATM","एटीएम","","Money","🏧"],
+["Geldwechsel","money exchange","मुद्रा विनिमय","","Money","💱"],
+["überweisen","to transfer","पैसे ट्रांसफर","","Money","📤"],
+["verdienen","to earn","कमाना","","Money","💼"],
+["bezahlen","to pay","भुगतान करना","","Money","💳"],
+["Zahlung","payment","भुगतान","","Money","🧾"],
+["Kosten","cost","लागत","","Money","💲"],
+["Preis","price","कीमत","","Money","🏷️"],
+["Rabatt","discount","छूट","","Money","🎁"],
+["bar","cash","नकद","","Money","💵"],
+["kaufen","to buy","खरीदना","","Money","🛒"],
+["verkaufen","to sell","बेचना","","Money","🤝"],
+["Einkaufen","shopping","खरीदारी","","Money","🛍️"],
+["billig","cheap","सस्ता","","Money","🤑"],
+["günstig","affordable","किफायती","","Money","👌"],
+["teuer","expensive","महंगा","","Money","💎"],
+["essen","to eat","खाना खाना","","Food","🍽️"],
+["trinken","to drink","पीना","","Food","🥤"],
+["Salat","salad","सलाद","","Food","🥗"],
+["Kuchen","cake","केक","","Food","🎂"],
+["Schokolade","chocolate","चॉकलेट","","Food","🍫"],
+["Waffel","waffle","वेफल","","Food","🍦"],
+["kochen","to cook","पकाना","","Food","👨‍🍳"],
+["Küche","kitchen","रसोई","","Food","🍳"],
+["schmecken","to taste","स्वाद लेना","","Food","😋"],
+["lecker","tasty","स्वादिष्ट","","Food","🤤"],
+["süß","sweet","मीठा","","Food","🍬"],
+["bitter","bitter","कड़वा","","Food","😬"],
+["frisch","fresh","ताज़ा","","Food","🌿"],
+["arbeiten","to work","काम करना","","Work","💼"],
+["arbeitslos","unemployed","बेरोजगार","","Work","😞"],
+["selbstständig","self-employed","स्वरोजगार","","Work","🧑‍💻"],
+["Berufserfahrung","job experience","नौकरी का अनुभव","","Work","🏅"],
+["Erfahrung","experience","अनुभव","","Work","⭐"],
+["Büro","office","कार्यालय","","Work","🏢"],
+["Aufgabe","task","कार्य","","Work","📌"],
+["Teilzeit","part-time","अंशकालिक","","Work","⏰"],
+["Vollzeit","full-time","पूर्णकालिक","","Work","🕐"],
+["fokussieren","to focus","ध्यान केंद्रित करना","","Work","🎯"],
+["empfehlen","to recommend","सिफारिश करना","","Work","👆"],
+["anbieten","to offer","पेश करना","","Work","🤲"],
+["sprechen","to speak","बोलना","","Communication","🗣️"],
+["sagen","to say","कहना","","Communication","💬"],
+["erklären","to explain","समझाना","","Communication","📖"],
+["fragen","to ask","पूछना","","Communication","🙋"],
+["Frage","question","सवाल","","Communication","❓"],
+["antworten","to answer","उत्तर देना","","Communication","↩️"],
+["schreiben","to write","लिखना","","Communication","✍️"],
+["schicken","to send","भेजना","","Communication","📨"],
+["anrufen","to call","फोन करना","","Communication","📞"],
+["telefonieren","to phone","फोन पर बात","","Communication","📱"],
+["einladen","to invite","आमंत्रित करना","","Communication","💌"],
+["Einladung","invitation","निमंत्रण","","Communication","🎟️"],
+["gehen","to go","जाना","","Verbs","🚶"],
+["kommen","to come","आना","","Verbs","🏃"],
+["bringen","to bring","लाना","","Verbs","📦"],
+["geben","to give","देना","","Verbs","🎁"],
+["finden","to find","खोजना","","Verbs","🔍"],
+["denken","to think","सोचना","","Verbs","🤔"],
+["helfen","to help","मदद करना","","Verbs","🤝"],
+["leben","to live","जीना","","Verbs","🌱"],
+["wohnen","to reside","रहना","","Verbs","🏠"],
+["schlafen","to sleep","सोना","","Verbs","😴"],
+["aufstehen","to get up","उठना","","Verbs","⏰"],
+["lesen","to read","पढ़ना","","Verbs","📖"],
+["schwimmen","to swim","तैरना","","Verbs","🏊"],
+["wandern","to hike","पैदल यात्रा","","Verbs","🥾"],
+["tanzen","to dance","नृत्य करना","","Verbs","💃"],
+["fotografieren","to photograph","फोटो खींचना","","Verbs","📸"],
+["suchen","to search","खोजना","","Verbs","🔎"],
+["besuchen","to visit","मिलने जाना","","Verbs","🏡"],
+["bleiben","to stay","ठहरना","","Verbs","⚓"],
+["feiern","to celebrate","जश्न मनाना","","Verbs","🎉"],
+["verstehen","to understand","समझना","","Verbs","💡"],
+["Haus","house","घर","","Home","🏠"],
+["Fenster","window","खिड़की","","Home","🪟"],
+["Licht","light","रोशनी","","Home","💡"],
+["Handy","mobile phone","मोबाइल","","Home","📱"],
+["Bildschirm","screen","स्क्रीन","","Home","🖥️"],
+["einschalten","switch on","चालू करना","","Home","🔛"],
+["ausschalten","switch off","बंद करना","","Home","🔴"],
+["Stift","pen","कलम","","Home","🖊️"],
+["Papier","paper","कागज","","Home","📄"],
+["Zeitung","newspaper","अखबार","","Home","📰"],
+["Buch","book","किताब","","Home","📚"],
+["Tüte","carry bag","थैला","","Home","🛍️"],
+["anziehen","to wear","पहनना","","Home","👕"],
+["Konto","account","खाता","","Home","🏦"],
+["registrieren","to register","पंजीकरण","","Admin","📋"],
+["anmelden","to sign up","दर्ज कराना","","Admin","✍️"],
+["ausfüllen","to fill out","भरना","","Admin","📝"],
+["öffnen","to open","खोलना","","Admin","🔓"],
+["schließen","to close","बंद करना","","Admin","🔒"],
+["Eingang","entrance","प्रवेश द्वार","","Admin","🚪"],
+["Ausgang","exit","निकास","","Admin","🚪"],
+["Unterschrift","signature","हस्ताक्षर","","Admin","✒️"],
+["bestätigen","to confirm","पुष्टि करना","","Admin","☑️"],
+["gültig","valid","मान्य","","Admin","✅"],
+["sofort","immediately","तुरंत","","Admin","⚡"],
+["eilig","urgent","जरूरी","","Admin","🚨"],
+["später","later","बाद में","","Admin","⏳"],
+["Zettel","receipt","पर्ची","","Admin","🧾"],
+["bereit","ready","तैयार","","Adjectives","✅"],
+["fertig","finished","खत्म","","Adjectives","🏁"],
+["leicht","easy","आसान","","Adjectives","😊"],
+["schwierig","difficult","मुश्किल","","Adjectives","😓"],
+["beliebt","popular","लोकप्रिय","","Adjectives","⭐"],
+["schlecht","bad","बुरा","","Adjectives","👎"],
+["sicher","secure","सुरक्षित","","Adjectives","🔒"],
+["neu","new","नया","","Adjectives","✨"],
+["alt","old","पुराना","","Adjectives","🕰️"],
+["schön","beautiful","सुंदर","","Adjectives","😍"],
+["schnell","fast","तेज़","","Adjectives","⚡"],
+["einfach","simple","सरल","","Adjectives","👌"],
+["bequem","comfortable","आरामदायक","","Adjectives","🛋️"],
+["sauber","clean","साफ","","Adjectives","🧼"],
+["schmutzig","dirty","गंदा","","Adjectives","🦠"],
+["schwer","heavy","भारी","","Adjectives","⚖️"],
+["pünktlich","punctual","समय पर","","Adjectives","⏰"],
+["richtig","correct","सही","","Adjectives","✅"],
+["wichtig","important","महत्वपूर्ण","","Adjectives","❗"],
+["möglich","possible","संभव","","Adjectives","💡"],
+["groß","big","बड़ा","","Adjectives","🐘"],
+["klein","small","छोटा","","Adjectives","🐭"],
+["kaputt","broken","टूटा हुआ","","Adjectives","💔"],
+["krank","sick","बीमार","","Adjectives","🤒"],
+["allein","alone","अकेला","","Adjectives","🧍"],
+["ganz","whole","पूरा","","Adjectives","🌕"],
+["genau","exactly","बिल्कुल","","Adjectives","🎯"],
+["erlaubt","allowed","अनुमत","","Adjectives","✅"],
+["verboten","not allowed","वर्जित","","Adjectives","🚫"],
+["wann","when","कब","","Questions","🕐"],
+["was","what","क्या","","Questions","❓"],
+["wo","where","कहाँ","","Questions","📍"],
+["wer","who","कौन","","Questions","🙋"],
+["wohin","where to","कहाँ जाना","","Questions","🗺️"],
+["woher","where from","कहाँ से","","Questions","🧭"],
+["welche","which","कौन सा","","Questions","🔘"],
+["wie","how","कैसे","","Questions","🤔"],
+["wie lange","how long","कितने समय","","Questions","⏱️"],
+["wie viele","how many","कितने","","Questions","🔢"],
+["wie viel","how much","कितना","","Questions","⚖️"],
+["warum","why","क्यों","","Questions","🤷"],
+["nur","only","केवल","","Connectors","1️⃣"],
+["sehr","very","बहुत","","Connectors","💯"],
+["mehr","more","ज़्यादा","","Connectors","➕"],
+["wenig","less","कम","","Connectors","➖"],
+["zusammen","together","साथ में","","Connectors","🤝"],
+["mit","with","के साथ","","Connectors","➕"],
+["ohne","without","बिना","","Connectors","🚫"],
+["wieder","again","फिर से","","Connectors","🔄"],
+["bitte","please","कृपया","","Connectors","🙏"],
+["alle","everyone","सभी","","Connectors","👥"],
+["etwas","something","कुछ","","Connectors","📦"],
+["beide","both","दोनों","","Connectors","👫"],
+["nicht","not","नहीं","","Connectors","❌"],
+["oder","or","या","","Connectors","↔️"],
+["während","during","के दौरान","","Connectors","⏳"],
+["zwischen","between","के बीच","","Connectors","↔️"],
+["immer","always","हमेशा","","Connectors","♾️"],
+["noch nicht","not yet","अभी नहीं","","Connectors","⏳"],
+["ein bisschen","a little","थोड़ा सा","","Connectors","🤏"],
+["schon","already","पहले से","","Connectors","✔️"],
+["heute","today","आज","","Time","📅"],
+["morgen","tomorrow","कल","","Time","🌅"],
+["gestern","yesterday","बीता कल","","Time","🌇"],
+["übermorgen","day after tomorrow","परसों","","Time","📆"],
+["jetzt","now","अभी","","Time","⏱️"],
+["früh","early","जल्दी","","Time","🌄"],
+["Abend","evening","शाम","","Time","🌆"],
+["Mittag","noon","दोपहर","","Time","☀️"],
+["Vormittag","morning","सुबह","before 12","Time","🌤️"],
+["Nachmittag","afternoon","दोपहर बाद","","Time","🌞"],
+["Nacht","night","रात","","Time","🌙"],
+["Woche","week","हफ्ता","","Time","🗓️"],
+["Monat","month","महीना","","Time","📅"],
+["Jahr","year","साल","","Time","🎊"],
+["Tag","day","दिन","","Time","🌤️"],
+["Ferien","vacation","छुट्टियाँ","","Time","🏖️"],
+["Ort","place","जगह","","Places","📍"],
+["Stadtzentrum","city centre","शहर केंद्र","","Places","🏙️"],
+["Strand","beach","समुद्र तट","","Places","🏖️"],
+["See","lake","झील","","Places","🏞️"],
+["Meer","ocean","समुद्र","","Places","🌊"],
+["Himmel","sky","आकाश","","Places","☁️"],
+["Berge","mountain","पहाड़","","Places","⛰️"],
+["draußen","outside","बाहर","","Places","🌳"],
+["drinnen","inside","अंदर","","Places","🏠"],
+["Straße","street","सड़क","","Places","🛣️"],
+["Hochzeit","wedding","शादी","","Social","💍"],
+["verheiratet","married","विवाहित","","Social","👫"],
+["Kind","child","बच्चा","","Social","👶"],
+["Mädchen","girl","लड़की","","Social","👧"],
+["gleichfalls","same to you","आपको भी","","Social","🤝"],
+["danken","to thank","धन्यवाद","","Social","🙏"],
+["entschuldigen","to excuse","माफ करना","","Social","😊"],
+["gratulieren","to congratulate","बधाई","","Social","🎉"],
+["verstehen","to understand","समझना","","Social","💡"],
+["geboren","born","पैदा हुआ","","Social","👶"],
+["Krankenhaus","hospital","अस्पताल","","Social","🏥"],
+["Klima","climate","जलवायु","","Social","🌍"],
+["Natur","nature","प्रकृति","","Social","🌿"],
+["Tier","animal","जानवर","","Social","🐾"],
+["Meinung","opinion","राय","","Social","💬"],
+];
+
+let activeFilter = "Today's Vocab";
+let currentCard = null;
+let hoverTimer = null;
+let modalImages = [];
+let imgIndex = 0;
+let explainText = '';
+let currentDE = '', currentEN = '', currentHI = '';
+
+// ─── HOVER PRONOUNCE ───────────────────────────────────────────
+function hoverSpeak(word, el) {
+  hoverTimer = setTimeout(() => {
+    pronounceWord(word);
+    el.classList.add('playing');
+  }, 350);
+}
+function hoverStop(el) {
+  clearTimeout(hoverTimer);
+  setTimeout(() => el.classList.remove('playing'), 800);
+}
+
+// ─── PRONOUNCE ─────────────────────────────────────────────────
+function pronounceWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'de-DE';
+  u.rate = 0.82;
+  u.pitch = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const dv = voices.find(v => v.lang.startsWith('de'));
+  if (dv) u.voice = dv;
+  document.getElementById('speakWord').textContent = word;
+  document.getElementById('speakBar').classList.add('show');
+  u.onend = () => document.getElementById('speakBar').classList.remove('show');
+  window.speechSynthesis.speak(u);
+}
+
+function pronounceModal() { pronounceWord(currentDE); }
+function stopAll() {
+  window.speechSynthesis.cancel();
+  document.getElementById('speakBar').classList.remove('show');
+}
+
+// ─── MODAL ─────────────────────────────────────────────────────
+function openModal(de, en, hi) {
+  currentDE = de; currentEN = en; currentHI = hi;
+  explainText = '';
+  modalImages = []; imgIndex = 0;
+
+  document.getElementById('mDE').textContent = '🇩🇪 ' + de;
+  document.getElementById('mEN').textContent = '🇬🇧 ' + en;
+  document.getElementById('mHI').textContent = '🇮🇳 ' + hi;
+  document.getElementById('explainBox').style.display = 'none';
+  document.getElementById('explainBox').textContent = '';
+  document.getElementById('readBtn').style.display = 'none';
+  document.getElementById('explainBtn').textContent = '💡 Explain (Hinglish)';
+  document.getElementById('explainBtn').disabled = false;
+
+  const img = document.getElementById('mImg');
+  img.style.display = 'none';
+  document.getElementById('imgLoader').style.display = 'block';
+  document.getElementById('imgLoader').textContent = '🔍 Loading image...';
+
+  document.getElementById('modal').classList.add('show');
+  pronounceWord(de);
+  loadImage(en);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  window.speechSynthesis.cancel();
+  document.getElementById('speakBar').classList.remove('show');
+}
+
+// ─── IMAGE LOADING ──────────────────────────────────────────────
+async function loadImage(query) {
+  modalImages = [];
+  imgIndex = 0;
+  const img = document.getElementById('mImg');
+  const loader = document.getElementById('imgLoader');
+
+  // 1. Wikipedia
+  try {
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.split('/')[0].trim())}`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.thumbnail && d.thumbnail.source) {
+        modalImages.push(d.thumbnail.source.replace(/\/\d+px-/, '/400px-'));
+      }
+    }
+  } catch(e) {}
+
+  // 2. Wikimedia Commons
+  try {
+    const r = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&prop=imageinfo&iiprop=url&iiurlwidth=400&format=json&origin=*&gsrlimit=10`);
+    if (r.ok) {
+      const d = await r.json();
+      const pages = d.query && d.query.pages;
+      if (pages) {
+        Object.values(pages).forEach(p => {
+          const url = p.imageinfo && p.imageinfo[0] && p.imageinfo[0].thumburl;
+          if (url && !url.match(/\.(svg|tiff|ogg|pdf|webm)/i)) {
+            modalImages.push(url);
+          }
+        });
+      }
+    }
+  } catch(e) {}
+
+  showImage();
+}
+
+function showImage() {
+  const img = document.getElementById('mImg');
+  const loader = document.getElementById('imgLoader');
+
+  if (modalImages.length === 0) {
+    loader.textContent = '🖼️ No image found';
+    return;
+  }
+
+  loader.style.display = 'block';
+  loader.textContent = '🔍 Loading...';
+  img.style.display = 'none';
+
+  const tryLoad = (idx) => {
+    if (idx >= modalImages.length) {
+      loader.textContent = '🖼️ Could not load image';
+      return;
+    }
+    const testImg = new Image();
+    testImg.onload = () => {
+      img.src = modalImages[idx];
+      img.style.display = 'block';
+      loader.style.display = 'none';
+      imgIndex = idx;
+    };
+    testImg.onerror = () => tryLoad(idx + 1);
+    testImg.src = modalImages[idx];
+  };
+  tryLoad(imgIndex);
+}
+
+function imgError() {
+  imgIndex++;
+  if (imgIndex < modalImages.length) showImage();
+  else document.getElementById('imgLoader').textContent = '🖼️ No image found';
+}
+
+function nextImg() {
+  imgIndex++;
+  if (imgIndex >= modalImages.length) {
+    imgIndex = 0;
+    // fetch more
+    fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(currentEN)}&gsrnamespace=6&prop=imageinfo&iiprop=url&iiurlwidth=400&format=json&origin=*&gsroffset=10&gsrlimit=10`)
+      .then(r => r.json()).then(d => {
+        const pages = d.query && d.query.pages;
+        if (pages) {
+          Object.values(pages).forEach(p => {
+            const url = p.imageinfo && p.imageinfo[0] && p.imageinfo[0].thumburl;
+            if (url && !url.match(/\.(svg|tiff|ogg|pdf|webm)/i)) modalImages.push(url);
+          });
+        }
+        showImage();
+      }).catch(() => { imgIndex = 0; showImage(); });
+  } else {
+    showImage();
+  }
+}
+
+// ─── AI EXPLANATION ─────────────────────────────────────────────
+async function getExplanation() {
+  const btn = document.getElementById('explainBtn');
+  const box = document.getElementById('explainBox');
+  btn.textContent = '⏳ Loading...';
+  btn.disabled = true;
+  box.style.display = 'block';
+  box.textContent = '✨ Generating explanation...';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `You are explaining the German word "${currentDE}" (meaning: "${currentEN}") to an Indian student learning German A1.
+
+Speak in natural Hinglish like a friend. Give a REAL LIFE example — like an actual situation where someone would say this word in real life. 
+
+For example if the word is "Flughafen" (airport): "Yaar soch, tu Germany ja raha hai pehli baar — toh airport pe utrega na? Wahan log bolenge 'Willkommen am Flughafen!' — matlab welcome to the airport! Toh jab bhi tu fly kare, yeh word sun'ne ko milega."
+
+Structure:
+- Real life situation where this word is used (2 sentences, Hinglish)
+- Exact German sentence someone would say in that situation + Hinglish meaning
+- One line memory trick
+
+Max 90 words. Casual, warm, like a dost. No bullet points.`
+        }]
+      })
+    });
+    const data = await res.json();
+    explainText = data.content[0].text;
+  } catch(e) {
+    explainText = `Yaar, "${currentDE}" ka simple matlab hai "${currentEN}". Bas yaad rakh — jab bhi Germans yeh situation mein hote hain, yeh word use karte hain. Ek baar practice kar lo, pakka yaad ho jaayega! 😄`;
+  }
+
+  box.textContent = explainText;
+  btn.textContent = '💡 Explain (Hinglish)';
+  btn.disabled = false;
+  document.getElementById('readBtn').style.display = 'inline-block';
+}
+
+// ─── READ ALOUD (best female voice available) ─────────────────────
+function readExplanation() {
+  if (!explainText) return;
+  window.speechSynthesis.cancel();
+
+  // Wait for voices to be ready
+  let voices = window.speechSynthesis.getVoices();
+  if (!voices.length) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = window.speechSynthesis.getVoices();
+      doSpeak(voices);
+    };
+  } else {
+    doSpeak(voices);
+  }
+
+  function doSpeak(voices) {
+    // Priority: best natural female voices
+    const femaleKeywords = ['samantha','victoria','karen','moira','fiona','veena','zira','hazel','susan','kate','emma','lisa','sara','julia','tessa','allison','ava','nicky','female','google uk english female','microsoft zira','microsoft hazel'];
+
+    let voice = voices.find(v => femaleKeywords.some(k => v.name.toLowerCase().includes(k)) && v.lang.startsWith('en'))
+      || voices.find(v => femaleKeywords.some(k => v.name.toLowerCase().includes(k)))
+      || voices.find(v => v.lang === 'en-GB')
+      || voices.find(v => v.lang === 'en-US')
+      || voices.find(v => v.lang.startsWith('en'));
+
+    // Speak sentence by sentence for natural pauses
+    const sentences = explainText.match(/[^.!?]+[.!?]+/g) || [explainText];
+    let i = 0;
+    function next() {
+      if (i >= sentences.length) return;
+      const u = new SpeechSynthesisUtterance(sentences[i].trim());
+      if (voice) { u.voice = voice; u.lang = voice.lang; }
+      else u.lang = 'en-US';
+      u.rate = 0.65;
+      u.pitch = 1.1;
+      u.volume = 1;
+      i++;
+      u.onend = () => setTimeout(next, 400);
+      window.speechSynthesis.speak(u);
+    }
+    next();
+  }
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────
+function render() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const filtered = VOCAB.filter(([de,en,hi,,sec]) =>
+    (activeFilter === 'All' || sec === activeFilter) &&
+    (!q || de.toLowerCase().includes(q) || en.toLowerCase().includes(q) || hi.includes(q))
+  );
+
+  document.getElementById('stats').textContent = `${filtered.length} word${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    document.getElementById('grid').innerHTML = '<div class="no-results"><div style="font-size:48px">🔍</div><p style="margin-top:10px">No words found</p></div>';
+    return;
+  }
+
+  document.getElementById('grid').innerHTML = filtered.map(([de,en,hi,note,sec,emoji]) => {
+    const c = COLORS[sec] || {bg:'#eee',tx:'#333'};
+    // Escape for JS string safety
+    const esc = s => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="card"
+      onmouseenter="hoverSpeak('${esc(de)}',this)"
+      onmouseleave="hoverStop(this)"
+      onclick="openModal('${esc(de)}','${esc(en)}','${esc(hi)}')">
+      <span class="badge" style="background:${c.bg};color:${c.tx}">${sec}</span>
+      <span class="emoji">${emoji||'📝'}</span>
+      <div class="de">🔊 ${de}</div>
+      <div class="en">${en}</div>
+      <div class="hi">${hi}</div>
+      ${note?`<div class="note">${note}</div>`:''}
+      <div class="hint">hover = pronounce · tap = image</div>
+    </div>`;
+  }).join('');
+}
+
+function buildFilters() {
+  const secs = ["All","Today's Vocab",...Object.keys(COLORS).filter(s => s !== "Today's Vocab")];
+  window._filterSecs = secs;
+  document.getElementById('filters').innerHTML = secs.map(s =>
+    `<button class="fb ${s===activeFilter?'active':''}" onclick="setFilterByName(this.dataset.sec)" data-sec="${s}">${s}</button>`
+  ).join('');
+}
+
+function setFilterByName(s) {
+  activeFilter = s;
+  document.getElementById('search').value = '';
+  buildFilters();
+  render();
+  window.scrollTo({top:90,behavior:'smooth'});
+}
+
+// ─── INIT ───────────────────────────────────────────────────────
+window.speechSynthesis.onvoiceschanged = () => {};
+buildFilters();
+render();
+</script>
+</body>
+</html>
