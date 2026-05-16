@@ -467,30 +467,44 @@ function hoverStop(el) {
 
 // ─── PRONOUNCE ─────────────────────────────────────────────────
 function pronounceWord(word) {
-  if (!window.speechSynthesis) return;
+  if (!word) return;
+  document.getElementById('speakWord').textContent = word;
+  document.getElementById('speakBar').classList.add('show');
+  const hideBar = () => document.getElementById('speakBar').classList.remove('show');
+
+  const artMatch = word.match(/^(der|die|das) ([A-ZÄÖÜ].+)$/);
+
+  if (artMatch) {
+    // Say article via Google TTS, then the noun
+    const playArticle = () => {
+      const a1 = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(artMatch[1])}&tl=de&client=tw-ob`);
+      const a2 = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(artMatch[2])}&tl=de&client=tw-ob`);
+      a1.onended = () => a2.play().catch(() => wsFallback(artMatch[2], hideBar));
+      a2.onended = hideBar;
+      a1.onerror = () => wsFallback(word, hideBar);
+      a2.onerror = hideBar;
+      a1.play().catch(() => wsFallback(word, hideBar));
+    };
+    playArticle();
+  } else {
+    const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=de&client=tw-ob`);
+    audio.onended = hideBar;
+    audio.onerror = () => wsFallback(word, hideBar);
+    audio.play().catch(() => wsFallback(word, hideBar));
+  }
+}
+
+// Web Speech API fallback if Google TTS is blocked
+function wsFallback(word, onEnd) {
+  if (!window.speechSynthesis) { onEnd(); return; }
   window.speechSynthesis.cancel();
   const voices = window.speechSynthesis.getVoices();
   const dv = voices.find(v => v.lang.startsWith('de'));
-  document.getElementById('speakWord').textContent = word;
-  document.getElementById('speakBar').classList.add('show');
-  const artMatch = word.match(/^(der|die|das) ([A-ZÄÖÜ].+)$/);
-  if (artMatch) {
-    const u1 = new SpeechSynthesisUtterance(artMatch[1]);
-    u1.lang = 'de-DE'; u1.rate = 0.75; u1.pitch = 1;
-    if (dv) u1.voice = dv;
-    const u2 = new SpeechSynthesisUtterance(artMatch[2]);
-    u2.lang = 'de-DE'; u2.rate = 0.78; u2.pitch = 1;
-    if (dv) u2.voice = dv;
-    u2.onend = () => document.getElementById('speakBar').classList.remove('show');
-    window.speechSynthesis.speak(u1);
-    window.speechSynthesis.speak(u2);
-  } else {
-    const u = new SpeechSynthesisUtterance(word);
-    u.lang = 'de-DE'; u.rate = 0.82; u.pitch = 1;
-    if (dv) u.voice = dv;
-    u.onend = () => document.getElementById('speakBar').classList.remove('show');
-    window.speechSynthesis.speak(u);
-  }
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'de-DE'; u.rate = 0.82; u.pitch = 1;
+  if (dv) u.voice = dv;
+  u.onend = onEnd;
+  window.speechSynthesis.speak(u);
 }
 
 function pronounceModal() { pronounceWord(currentDE); }
