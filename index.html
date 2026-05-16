@@ -650,50 +650,15 @@ async function getExplanation() {
   box.textContent = '✨ Generating explanation...';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/explain', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `You are a fun, street-smart German tutor explaining the word "${currentDE}" (English: "${currentEN}", Hindi: "${currentHI}") to an Indian/Pakistani student learning German A1.
-
-Speak EXACTLY like a close dost — natural Hinglish (Hindi + English mix). No formal language. No bullet points. No robotic dictionary style.
-
-Follow this EXACT format and style:
-
----
-[Paint a vivid real-life scenario in Germany where this word naturally comes up. Make it feel like the student is THERE — walking into a shop, at a train station, in a café, at a doctor's office, talking to a flatmate etc. 2-3 sentences, very specific and visual.]
-
-[Then write the EXACT German sentence a native speaker would say in that moment.]
-Matlab: [translate that sentence in casual Hinglish]
-
-Memory trick: [One punchy, funny, memorable line connecting the German sound to something familiar in Hindi/Urdu/English. Make it sticky.]
----
-
-RULES:
-- Only describe ONE specific situation — not multiple
-- The German sentence must be something REAL that Germans actually say in daily life
-- Memory trick must be clever and memorable, not generic
-- Total length: 100–150 words max
-- NO bullet points, NO headers, NO bold/italic markers
-- Write in flowing paragraphs like you're texting a friend
-
-Example output style for "der Bahnhof" (railway station):
-Yaar soch — tu Germany mein pehli baar train pakadne gaya. Platform dhundh raha hai, bag bhaari hai, aur sab signs pe ek hi word dikh raha hai: Bahnhof. Munich mein utrega toh "Hauptbahnhof" likha milega har jagah — woh hai main railway station. Conductor se poochha toh bolega:
-"Der Zug fährt vom Bahnhof ab."
-Matlab: Train station se chhoot rahi hai — BHAAG!
-
-Memory trick: Bahn = train track, Hof = yard. Train ka yard = Bahnhof. Simple!`
-        }]
-      })
+      body: JSON.stringify({ word: currentDE, english: currentEN, hindi: currentHI })
     });
     const data = await res.json();
-    explainText = data.content[0].text;
+    explainText = data.text;
   } catch(e) {
-    explainText = `Yaar, "${currentDE}" ka simple matlab hai "${currentEN}". Bas yaad rakh — jab bhi Germans yeh situation mein hote hain, yeh word use karte hain. Ek baar practice kar lo, pakka yaad ho jaayega! 😄`;
+    explainText = `Yaar, "${currentDE}" ka matlab hai "${currentEN}". Germany mein yeh word daily life mein use hota hai — real situation mein suno toh pakka yaad ho jaayega!`;
   }
 
   box.textContent = explainText;
