@@ -25,10 +25,10 @@ header p{font-size:11px;opacity:0.7;margin-bottom:10px}
 .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;position:absolute;top:8px;right:8px}
 .emoji{font-size:30px;text-align:center;margin:18px 0 8px;display:block}
 .de{font-size:14px;font-weight:700;color:#1a3a8a;margin-bottom:4px}
-.art{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-bottom:5px;letter-spacing:0.4px}
-.art-der{background:#dbeafe;color:#1d4ed8}
-.art-die{background:#fce7f3;color:#be185d}
-.art-das{background:#dcfce7;color:#15803d}
+.art{display:inline-block;font-size:13px;font-weight:900;padding:4px 12px;border-radius:10px;margin-bottom:6px;letter-spacing:0.5px;border:2px solid}
+.art-der{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.art-die{background:#fce7f3;color:#be185d;border-color:#f9a8d4}
+.art-das{background:#dcfce7;color:#15803d;border-color:#86efac}
 .en{font-size:12px;color:#2e7d32;margin-bottom:3px}
 .hi{font-size:12px;color:#6a1b9a;margin-bottom:3px}
 .note{font-size:10px;color:#999;font-style:italic}
@@ -469,17 +469,28 @@ function hoverStop(el) {
 function pronounceWord(word) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(word);
-  u.lang = 'de-DE';
-  u.rate = 0.82;
-  u.pitch = 1;
   const voices = window.speechSynthesis.getVoices();
   const dv = voices.find(v => v.lang.startsWith('de'));
-  if (dv) u.voice = dv;
   document.getElementById('speakWord').textContent = word;
   document.getElementById('speakBar').classList.add('show');
-  u.onend = () => document.getElementById('speakBar').classList.remove('show');
-  window.speechSynthesis.speak(u);
+  const artMatch = word.match(/^(der|die|das) ([A-ZÄÖÜ].+)$/);
+  if (artMatch) {
+    const u1 = new SpeechSynthesisUtterance(artMatch[1]);
+    u1.lang = 'de-DE'; u1.rate = 0.75; u1.pitch = 1;
+    if (dv) u1.voice = dv;
+    const u2 = new SpeechSynthesisUtterance(artMatch[2]);
+    u2.lang = 'de-DE'; u2.rate = 0.78; u2.pitch = 1;
+    if (dv) u2.voice = dv;
+    u2.onend = () => document.getElementById('speakBar').classList.remove('show');
+    window.speechSynthesis.speak(u1);
+    window.speechSynthesis.speak(u2);
+  } else {
+    const u = new SpeechSynthesisUtterance(word);
+    u.lang = 'de-DE'; u.rate = 0.82; u.pitch = 1;
+    if (dv) u.voice = dv;
+    u.onend = () => document.getElementById('speakBar').classList.remove('show');
+    window.speechSynthesis.speak(u);
+  }
 }
 
 function pronounceModal() { pronounceWord(currentDE); }
@@ -723,8 +734,8 @@ function render() {
   document.getElementById('grid').innerHTML = filtered.map(([de,en,hi,note,sec,emoji]) => {
     const c = COLORS[sec] || {bg:'#eee',tx:'#333'};
     const esc = s => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const m = de.match(/^(der|die|das)\s+(.+)$/i);
-    const artHTML = m ? `<div><span class="art art-${m[1].toLowerCase()}">${m[1]}</span></div>` : '';
+    const m = de.match(/^(der|die|das) ([A-ZÄÖÜ].+)$/);
+    const artHTML = m ? `<div><span class="art art-${m[1]}">${m[1]}</span></div>` : '';
     const wordDisplay = m ? m[2] : de;
     return `<div class="card"
       onmouseenter="hoverSpeak('${esc(de)}',this)"
