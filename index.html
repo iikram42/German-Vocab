@@ -25,6 +25,10 @@ header p{font-size:11px;opacity:0.7;margin-bottom:10px}
 .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;position:absolute;top:8px;right:8px}
 .emoji{font-size:30px;text-align:center;margin:18px 0 8px;display:block}
 .de{font-size:14px;font-weight:700;color:#1a3a8a;margin-bottom:4px}
+.art{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-bottom:5px;letter-spacing:0.4px}
+.art-der{background:#dbeafe;color:#1d4ed8}
+.art-die{background:#fce7f3;color:#be185d}
+.art-das{background:#dcfce7;color:#15803d}
 .en{font-size:12px;color:#2e7d32;margin-bottom:3px}
 .hi{font-size:12px;color:#6a1b9a;margin-bottom:3px}
 .note{font-size:10px;color:#999;font-style:italic}
@@ -718,15 +722,18 @@ function render() {
 
   document.getElementById('grid').innerHTML = filtered.map(([de,en,hi,note,sec,emoji]) => {
     const c = COLORS[sec] || {bg:'#eee',tx:'#333'};
-    // Escape for JS string safety
     const esc = s => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const m = de.match(/^(der|die|das)\s+(.+)$/i);
+    const artHTML = m ? `<div><span class="art art-${m[1].toLowerCase()}">${m[1]}</span></div>` : '';
+    const wordDisplay = m ? m[2] : de;
     return `<div class="card"
       onmouseenter="hoverSpeak('${esc(de)}',this)"
       onmouseleave="hoverStop(this)"
       onclick="openModal('${esc(de)}','${esc(en)}','${esc(hi)}')">
       <span class="badge" style="background:${c.bg};color:${c.tx}">${sec}</span>
       <span class="emoji">${emoji||'📝'}</span>
-      <div class="de">🔊 ${de}</div>
+      ${artHTML}
+      <div class="de">🔊 ${wordDisplay}</div>
       <div class="en">${en}</div>
       <div class="hi">${hi}</div>
       ${note?`<div class="note">${note}</div>`:''}
