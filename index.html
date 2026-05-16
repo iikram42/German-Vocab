@@ -641,81 +641,30 @@ function nextImg() {
 }
 
 // ─── AI EXPLANATION ─────────────────────────────────────────────
-function getGeminiKey(){ return localStorage.getItem('gemini_key')||''; }
-function saveGeminiKey(k){ localStorage.setItem('gemini_key', k.trim()); }
-
 async function getExplanation() {
   const btn = document.getElementById('explainBtn');
   const box = document.getElementById('explainBox');
-  box.style.display = 'block';
-
-  const key = getGeminiKey();
-  if (!key) {
-    box.innerHTML = `<div style="font-size:12px;line-height:1.7;color:#fff">
-      🔑 <b>Ek baar free API key daalo — phir hamesha kaam karega!</b><br><br>
-      1. <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#90caf9;font-weight:700">👉 Click here → Get free Gemini key</a><br>
-      2. Copy karo aur neeche paste karo:<br><br>
-      <input id="gkInput" placeholder="AIza..." style="width:100%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;color:white;padding:9px 11px;font-size:12px;outline:none;box-sizing:border-box">
-      <button onclick="saveKeyAndExplain()" style="margin-top:8px;width:100%;background:#4caf50;color:white;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">✅ Save & Explain</button>
-    </div>`;
-    return;
-  }
-
   btn.textContent = '⏳ Generating...';
   btn.disabled = true;
-  box.textContent = '✨ Ek second — real-life example bana raha hoon...';
-
-  const prompt = `You are a fun, street-smart German tutor explaining "${currentDE}" (English: "${currentEN}", Hindi: "${currentHI}") to an Indian/Pakistani A1 student.
-
-Write in natural Hinglish like texting a close dost. Follow this EXACT structure in flowing paragraphs — NO bullet points, NO bold, NO headers:
-
-Paragraph 1: Paint ONE vivid real-life scene in Germany where this word comes up. Be very specific — name a place (café, Bahnhof, Supermarkt, Arzt etc.), describe what's happening around the student. 2-3 sentences. Make them feel they are THERE.
-
-Then write the exact German sentence a native would say in that moment.
-Matlab: [casual Hinglish translation of that sentence]
-
-Memory trick: [one punchy, funny line linking the German sound to Hindi/Urdu/English — make it unforgettable]
-
-Total: 100-140 words. Real Germans actually say the sentence you write. One scene only.`;
+  box.style.display = 'block';
+  box.textContent = '✨ Real-life example bana raha hoon...';
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          contents:[{parts:[{text:prompt}]}],
-          generationConfig:{maxOutputTokens:350,temperature:0.85}
-        })
-      }
-    );
+    const res = await fetch('/api/explain', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ word: currentDE, english: currentEN, hindi: currentHI })
+    });
     const data = await res.json();
-    if (data.error) {
-      if (data.error.code===400||data.error.code===403) {
-        localStorage.removeItem('gemini_key');
-        box.innerHTML = `<span style="color:#ff8a80">❌ Key galat hai ya expire ho gayi. 💡 button dobara click karo aur naya key daalo.</span>`;
-        btn.textContent = '💡 Explain (Hinglish)'; btn.disabled = false; return;
-      }
-      throw new Error(data.error.message);
-    }
-    explainText = data.candidates[0].content.parts[0].text;
+    explainText = data.text;
   } catch(e) {
-    explainText = `Yaar, "${currentDE}" ka matlab hai "${currentEN}". Germany mein yeh word daily life mein use hota hai — real situation mein suno toh pakka yaad ho jaayega!`;
+    explainText = `Yaar, "${currentDE}" ka matlab hai "${currentEN}". Germany mein yeh word roz ki zindagi mein use hota hai!`;
   }
 
   box.textContent = explainText;
   btn.textContent = '💡 Explain (Hinglish)';
   btn.disabled = false;
   document.getElementById('readBtn').style.display = 'inline-block';
-}
-
-function saveKeyAndExplain() {
-  const input = document.getElementById('gkInput');
-  if (input && input.value.trim()) {
-    saveGeminiKey(input.value);
-    getExplanation();
-  }
 }
 
 // ─── READ ALOUD (best female voice available) ─────────────────────

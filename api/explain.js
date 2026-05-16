@@ -5,52 +5,53 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { word, english, hindi } = req.body;
+  const { word, english, hindi } = req.body || {};
+  if (!word) return res.status(400).json({ text: 'Word missing' });
 
-  const prompt = `You are a fun, street-smart German tutor explaining the word "${word}" (English: "${english}", Hindi: "${hindi}") to an Indian/Pakistani student learning German A1.
+  const prompt = `You are a fun, street-smart German tutor explaining "${word}" (English: "${english}", Hindi: "${hindi}") to an Indian/Pakistani A1 student.
 
-Speak EXACTLY like a close dost — natural Hinglish (Hindi + English mix). No formal language. No bullet points. No robotic dictionary style. Write in flowing paragraphs like texting a friend.
+Write in natural Hinglish like texting a close dost. NO bullet points. NO bold. NO headers. Flowing paragraphs only.
 
-Follow this EXACT format:
+Structure:
+Paragraph 1 — ONE vivid real-life scene in Germany where this word is used. Name a specific place (Bahnhof, Supermarkt, Café, Arzt, Wohnung etc). 2-3 sentences. Make them feel they are THERE.
 
-[Paint a vivid real-life scene in Germany where this word naturally comes up. Make the student feel like they are THERE — in a shop, café, train station, doctor, flatmate conversation etc. Be very specific and visual. 2-3 sentences.]
+Then write the exact German sentence a native would say in that moment.
+Matlab: [casual Hinglish translation]
 
-[Write the EXACT German sentence a native speaker would say in that moment.]
-Matlab: [translate in casual Hinglish]
+Memory trick: [one punchy, funny line linking German sound to Hindi/Urdu/English — make it stick]
 
-Memory trick: [One punchy, funny, memorable line connecting the German sound to something in Hindi/Urdu/English. Make it stick.]
+Rules: one scene only, real sentence Germans say, 100-130 words total, no markdown.`;
 
-STRICT RULES:
-- ONE specific scene only — not multiple examples
-- The German sentence must be something real Germans say in daily life
-- Memory trick must be clever, not generic
-- Total: 100–140 words max
-- NO bullet points, NO headers, NO asterisks or markdown`;
+  const key = process.env.GEMINI_API_KEY;
+
+  if (!key) {
+    return res.status(200).json({
+      text: `Yaar, "${word}" ka matlab hai "${english}". Germany mein yeh word roz ki zindagi mein use hota hai — ek baar real situation mein suno toh pakka yaad ho jaayega!`
+    });
+  }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 350, temperature: 0.85 }
+        })
+      }
+    );
 
     const data = await response.json();
 
-    if (data.content && data.content[0] && data.content[0].text) {
-      return res.status(200).json({ text: data.content[0].text });
+    if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return res.status(200).json({ text: data.candidates[0].content.parts[0].text });
     }
-    throw new Error('Bad response from Claude');
+    throw new Error('Empty response');
   } catch (e) {
     return res.status(200).json({
-      text: `Yaar, "${word}" ka matlab hai "${english}". Germany mein yeh word real life mein tab use hota hai jab tu wahan actually hoga — ek baar sun lo, pakka yaad ho jaayega!`
+      text: `Yaar, "${word}" ka matlab hai "${english}". Germany mein yeh word roz ki zindagi mein use hota hai!`
     });
   }
 };
